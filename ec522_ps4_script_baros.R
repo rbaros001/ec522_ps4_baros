@@ -106,5 +106,5 @@ liquor_cv_fc <- liquor_cv_fit |>
 liquor_cv_fc |>
   accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
 
-## 
+##
 
