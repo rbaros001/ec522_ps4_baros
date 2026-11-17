@@ -85,7 +85,26 @@ liquor_fit |>
 
 ## The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise. 
 
+# 2.3 The Horse Race 
+liquor_cv <- liquor |>
+  stretch_tsibble(.init = 120, .step = 1) |>
+  filter(.id < max(.id))
 
+liquor_cv_fit <- liquor_cv |>
+  model(snaive = SNAIVE(sales),
+        ets    = ETS(log(sales)),
+        arima  = ARIMA(log(sales)))
 
+saveRDS(liquor_cv_fit, "results/liquor_cv_fit.rds")
 
+## 
+
+# 2.3b one-month ahead forecast 
+liquor_cv_fc <- liquor_cv_fit |>
+  forecast(h = 1)
+
+liquor_cv_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
+
+## 
 
