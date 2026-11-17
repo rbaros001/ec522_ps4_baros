@@ -12,6 +12,7 @@ library(fpp3)
 # PART 2 
 # ================================ #
 
+# 2.1 The Data
 # 2.1a Load in data 
 
 liquor_raw <- read_csv(
@@ -59,14 +60,30 @@ liquor |> gg_season(log_sales) +
 ## There appears to be a slight upward trend from January to December with the peak being in December and some small peaks in July and August. Over-time, consumption has increased as well to a higher sales level and following the same trend. 
 ## The seasonal swings do grow with the model. This suggests that using logs reveals the true rates of changes and sales patterns. 
 
+# 2.2 Fit Both Models 
+# 2.2a ARIMA and ETS
+liquor_fit <- liquor |>
+  model(arima = ARIMA(log(sales)),
+        ets   = ETS(log(sales)))
 
+liquor_fit |> select(arima) |> report()
+liquor_fit |> select(ets) |> report()
 
+## For the specifications for the ARIMA model were ARIMA(1,0,2)(2,1,1)[12] with drift. This tells us there was a seasonal difference at a lag of 12, indicating the series was differenced once against the same month from the previous year. The constant 0.0036, and total differencing d+D=1, this indicates a drift term. This indicates the year-over-year growth is trending upward over time.
+## The three letters indicate a Holt-Winters Additive model with additive error, additive trend, and additive seasonality. 
+    ## Additive error means random forecast errors are added directly to predicted level, trend, and seasonal components with assumed $\sigma^2$ = 0.0007 across the log(sales) series. 
+    ## Additive trend means the slope is added to the level at each time step. We see that log(sales) is increasing at a constant amount each period, the original sales variable is increasing by a constant percentage over time. The smoothing parameter $\beta$ = 0.0076 shows that the slope changes very slowly and remains nearly constant.
+    ## Additive seasonality meand the seasonal effects are added to the level and trend, meaning there is a constant magnitude on log(sales). $\gamma$ = 0.0002 indicates the seasonal pattern is practically fixed over time.
 
+# 2.2b 
+liquor_fit |> select(arima) |> gg_tsresiduals()
 
+liquor_fit |>
+  select(arima) |>
+  augment() |>
+  features(.innov, ljung_box, lag = 24, dof = 6)
 
-
-
-
+## The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise. 
 
 
 
