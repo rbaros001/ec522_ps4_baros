@@ -287,6 +287,100 @@ forecast::dm.test(u_var4, u_bvar, h = 1, power = 2)
 ## The DM test statistic for GDP is statistically significant and tells us that the BVAR(4) outperforms and is more statistically accurate to the VAR(4) model. The DM test statistic for unemployment rate was not statistically significant between the two models which signals that the models give roughly the same forecast performance.
 ## The DM test statistics for GDP and Unemployment rate tell us that VAR(1) could still be the best option. More comparisons would need to be run to confidently conclude this.
 
+# ==================================== #
+# PART 5 - A FACTOR MODE WITH FRED-MD
+# ==================================== #
+
+# 5.1a Data: September 1016 vintage of FRED-MD
+md_raw <- read_csv("data/fredmd_2026-09.csv", show_col_types = FALSE)
+tcode <- unlist(md_raw[1, -1])
+md <- md_raw[-1, ] |> mutate(date = as.Date(sasdate, "%m/%d/%Y"))
+
+transform_series <- function(x, code) {
+  d <- function(v) c(NA, diff(v))
+  switch(as.character(code),
+         "1" = x,                      # level
+         "2" = d(x),                   # first difference
+         "3" = d(d(x)),                # second difference
+         "4" = log(x),                 # log
+         "5" = 100 * d(log(x)),        # growth rate
+         "6" = 100 * d(d(log(x))),     # change in the growth rate
+         "7" = d(x / dplyr::lag(x) - 1))
+}
+
+# 5.1b Apply the transformations 
+fm <- map2_dfc(md[names(tcode)], tcode, transform_series) |>
+  mutate(date = md$date, .before = 1) |>
+  filter(date >= as.Date("1960-03-01"), date <= as.Date("2019-12-01"))
+
+fm <- fm[, colSums(is.na(fm)) == 0]
+
+dim(fm)
+
+tcode[c("INDPRO", "PAYEMS", "CPIAUCSL", "FEDFUNDS")]
+
+## INDPRO: code 5, growth rate 
+## PAYEMS: code 5, growth rate
+## CPIAUCSL: code 6, change in growth rate 
+## FEDFUNDS: code 2, first difference 
+## the transformation differences depend on what we are interested in observing. The first difference of FEDFUNDS removes randomness and give us the a stationary rates of change. The growth rate for INDPRO was taken because the variable could have exhibited seasonality and therefore to understand the true underlying growth of this variable, we would find the log of the variable * 100. The first difference measures absolute change, the growth rate measures the percentage change over time. 
+
+# 5.2a Estimating the Factors 
+Z <- fm |> select(-date) |> as.matrix()
+
+pc <- prcomp(scale(Z))
+
+summary(pc)$importance[, 1:5]
+
+## The principal components are estimates of the dynamic factors. These are linear combinations, weighted averages, of all the data. The share of the variation in all 121 series of the first three factors explain how much these dynamic factors move together. The first three factors explain 29% of the variation in all of the series. The first factor, PC1 = 0.149840, explains the real activity factor. The second, PC2 = 0.223910, explains the inflation factor. The third, PC3 = 0.294530, explains price variables. 
+
+# 5.2b 
+
+F1 <- pc$x[, 1] * sign(cor(pc$x[, 1], fm$INDPRO))
+
+tibble(date = fm$date, F1 = F1) |>
+  ggplot(aes(date, F1)) +
+  geom_line() +
+  labs(title = "First Factor from FRED-MD", x = NULL, y = NULL) +
+  theme_minimal()
+
+# 5.2c find 8 series most correlated with each of the first two factors:
+sort(abs(cor(pc$x[, 1], Z))[1, ], decreasing = TRUE)[1:8]
+sort(abs(cor(pc$x[, 2], Z))[1, ], decreasing = TRUE)[1:8]
+
+## The 8 most correlated: Based on these series and the plot, it seems as though the factors capture consumption variables, or economic production and activity. We can see this with the various dips due to recessions. 
+  ## CUSR0000SAC: CPI: commodities 
+  ## DNDGRG3M086SBEA: Person Consumption Expenditure: Nondurable goods 
+  ## CUSR0000SA0L2: CPI: all items less shelter 
+  ## CPIAUCSL: CPI: all items 
+  ## CUSR0000SA0L5: CPI: all items less medical care
+  ## CPITRNSL: CPI: transportation 
+  ## PCEPI: Personal Consumption Expenditure: chain index
+  ## CPIULFSL: CPI: all items less food
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
