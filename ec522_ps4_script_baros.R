@@ -97,7 +97,7 @@ liquor_cv_fit <- liquor_cv |>
 
 saveRDS(liquor_cv_fit, "results/liquor_cv_fit.rds")
 
-## 
+## There are 216 different forecast origins in this TS-CV. 
 
 # 2.3b one-month ahead forecast 
 liquor_cv_fc <- liquor_cv_fit |>
@@ -106,7 +106,28 @@ liquor_cv_fc <- liquor_cv_fit |>
 liquor_cv_fc |>
   accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
 
-## 
+library(knitr)
+
+liquor_cv_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE)) |>
+  select(.model, RMSE, MAE) |>
+  knitr::kable(digits = 2)
+
+
+## The first and last forecasts for this are January 2002 to December 2019. The model that forecasts the most accurately is the ARIMA model. The ARIMA model wins for both the RMSE and MAE. 
+
+# 2.4 Are the differences significant?
+liquor_errs <- liquor_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(liquor) |> select(Month, actual = sales),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e)
+
+forecast::dm.test(liquor_errs$arima, liquor_errs$ets, h = 1, power = 2)
+
+## The DM statiistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts. 
 
 
 
