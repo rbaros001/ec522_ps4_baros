@@ -43,6 +43,35 @@ ul.task-list li input[type="checkbox"] {
 <link href="ec522_ps4_writeup_baros_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="ec522_ps4_writeup_baros_files/libs/bootstrap/bootstrap-917079515d91bccb85b543faf8aa8bb6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -56,7 +85,13 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#problem-set-4-write-up" id="toc-problem-set-4-write-up" class="nav-link active" data-scroll-target="#problem-set-4-write-up">Problem Set 4 Write Up</a>
   <ul class="collapse">
-  <li><a href="#arima-vs.-ets" id="toc-arima-vs.-ets" class="nav-link" data-scroll-target="#arima-vs.-ets">ARIMA vs.&nbsp;ETS</a></li>
+  <li><a href="#arima-vs.-ets" id="toc-arima-vs.-ets" class="nav-link" data-scroll-target="#arima-vs.-ets">ARIMA vs.&nbsp;ETS</a>
+  <ul class="collapse">
+  <li><a href="#plots-of-us-retail-sales-beer-wine-and-liquor-stores" id="toc-plots-of-us-retail-sales-beer-wine-and-liquor-stores" class="nav-link" data-scroll-target="#plots-of-us-retail-sales-beer-wine-and-liquor-stores">Plots of US Retail Sales: Beer, Wine, and Liquor Stores</a></li>
+  <li><a href="#fit-arima-and-ets-models-to-the-log-of-sales" id="toc-fit-arima-and-ets-models-to-the-log-of-sales" class="nav-link" data-scroll-target="#fit-arima-and-ets-models-to-the-log-of-sales">Fit ARIMA and ETS models to the log of sales</a></li>
+  <li><a href="#ljung-box-test-at-lag-24" id="toc-ljung-box-test-at-lag-24" class="nav-link" data-scroll-target="#ljung-box-test-at-lag-24">Ljung-Box Test at lag 24</a></li>
+  <li><a href="#the-horse-race" id="toc-the-horse-race" class="nav-link" data-scroll-target="#the-horse-race">The Horse Race</a></li>
+  </ul></li>
   <li><a href="#forecast-combination" id="toc-forecast-combination" class="nav-link" data-scroll-target="#forecast-combination">Forecast Combination</a></li>
   <li><a href="#var-vs.-bvar" id="toc-var-vs.-bvar" class="nav-link" data-scroll-target="#var-vs.-bvar">VAR vs.&nbsp;BVAR</a></li>
   <li><a href="#factor-model" id="toc-factor-model" class="nav-link" data-scroll-target="#factor-model">Factor Model</a></li>
@@ -104,6 +139,8 @@ ul.task-list li input[type="checkbox"] {
 <section id="arima-vs.-ets" class="level2">
 <h2 class="anchored" data-anchor-id="arima-vs.-ets">ARIMA vs.&nbsp;ETS</h2>
 <p>include plots, model reports, accuracy tables, DM test results, written answers to part 2</p>
+<section id="plots-of-us-retail-sales-beer-wine-and-liquor-stores" class="level3">
+<h3 class="anchored" data-anchor-id="plots-of-us-retail-sales-beer-wine-and-liquor-stores">Plots of US Retail Sales: Beer, Wine, and Liquor Stores</h3>
 <div class="cell">
 <div class="cell-output-display">
 <div>
@@ -121,6 +158,119 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <p>There appears to be a slight upward trend from January to December with the peak being in December and some small peaks in July and August. Over-time, consumption has increased as well to a higher sales level and following the same trend. The seasonal swings grow with the model which suggests that using logs reveals the true rates of changes and sales patterns.</p>
+</section>
+<section id="fit-arima-and-ets-models-to-the-log-of-sales" class="level3">
+<h3 class="anchored" data-anchor-id="fit-arima-and-ets-models-to-the-log-of-sales">Fit ARIMA and ETS models to the log of sales</h3>
+<section id="arima" class="level5">
+<h5 class="anchored" data-anchor-id="arima">ARIMA</h5>
+</section>
+<section id="ets" class="level5">
+<h5 class="anchored" data-anchor-id="ets">ETS</h5>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Series: sales 
+Model: ARIMA(1,0,2)(2,1,1)[12] w/ drift 
+Transformation: log(sales) 
+
+Coefficients:
+         ar1      ma1     ma2    sar1     sar2     sma1  constant
+      0.8948  -0.7374  0.2477  0.3679  -0.2334  -0.8845    0.0036
+s.e.  0.0355   0.0697  0.0623  0.0668   0.0665   0.0468    0.0001
+
+sigma^2 estimated as 0.0005469:  log likelihood=752.43
+AIC=-1488.85   AICc=-1488.4   BIC=-1458.61</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Series: sales 
+Model: ETS(A,A,A) 
+Transformation: log(sales) 
+  Smoothing parameters:
+    alpha = 0.3296099 
+    beta  = 0.007560263 
+    gamma = 0.0001765132 
+
+  Initial states:
+     l[0]         b[0]      s[0]      s[-1]        s[-2]       s[-3]      s[-4]
+ 7.412219 0.0007608238 0.3263441 0.03153301 -0.004849389 -0.03530501 0.02512163
+      s[-5]      s[-6]      s[-7]       s[-8]      s[-9]     s[-10]     s[-11]
+ 0.05558624 0.01219515 0.02503206 -0.06088935 -0.0607952 -0.1578065 -0.1561667
+
+  sigma^2:  7e-04
+
+      AIC      AICc       BIC 
+-489.1517 -487.2272 -424.2608 </code></pre>
+</div>
+</div>
+<p>For the specifications for the ARIMA model were ARIMA(1,0,2)(2,1,1)[12] with drift. This tells us there was a seasonal difference at a lag of 12, indicating the series was differenced once against the same month from the previous year. The constant 0.0036, and total differencing d+D=1, this indicates a drift term. This indicates the year-over-year growth is trending upward over time.</p>
+<p>The three letters indicate a Holt-Winters Additive model with additive error, additive trend, and additive seasonality. Additive error means random forecast errors are added directly to predicted level, trend, and seasonal components with assumed <span class="math inline">\(\sigma^2\)</span> = 0.0007 across the log(sales) series. Additive trend means the slope is added to the level at each time step. We see that log(sales) is increasing at a constant amount each period, the original sales variable is increasing by a constant percentage over time. The smoothing parameter <span class="math inline">\(\beta\)</span> = 0.0076 shows that the slope changes very slowly and remains nearly constant. Additive seasonality mean the seasonal effects are added to the level and trend, meaning there is a constant magnitude on log(sales). <span class="math inline">\(\gamma\)</span> = 0.0002 indicates the seasonal pattern is practically fixed over time.</p>
+</section>
+</section>
+<section id="ljung-box-test-at-lag-24" class="level3">
+<h3 class="anchored" data-anchor-id="ljung-box-test-at-lag-24">Ljung-Box Test at lag 24</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ec522_ps4_writeup_baros_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 3
+  .model lb_stat lb_pvalue
+  &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+1 arima     120.         0</code></pre>
+</div>
+</div>
+<p>The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise.</p>
+</section>
+<section id="the-horse-race" class="level3">
+<h3 class="anchored" data-anchor-id="the-horse-race">The Horse Race</h3>
+<p>There are 216 different forecast origins in this TS-CV.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<thead>
+<tr class="header">
+<th style="text-align: left;">.model</th>
+<th style="text-align: right;">RMSE</th>
+<th style="text-align: right;">MAE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">arima</td>
+<td style="text-align: right;">81.43</td>
+<td style="text-align: right;">65.65</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ets</td>
+<td style="text-align: right;">94.35</td>
+<td style="text-align: right;">72.31</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">snaive</td>
+<td style="text-align: right;">161.26</td>
+<td style="text-align: right;">136.63</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The first and last forecasts for this are January 2002 to December 2019. The model that forecasts the most accurately is the ARIMA model. The ARIMA model wins for both the RMSE and MAE.</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Diebold-Mariano Test
+
+data:  liquor_errs$arimaliquor_errs$ets
+DM = -2.9062, Forecast horizon = 1, Loss function power = 2, p-value =
+0.004042
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+<p>The DM statistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts.</p>
+</section>
 </section>
 <section id="forecast-combination" class="level2">
 <h2 class="anchored" data-anchor-id="forecast-combination">Forecast Combination</h2>

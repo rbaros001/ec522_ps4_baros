@@ -19,6 +19,8 @@ execute:
 
 include plots, model reports, accuracy tables, DM test results, written answers to part 2
 
+### Plots of US Retail Sales: Beer, Wine, and Liquor Stores
+
 ```{r, include=FALSE, warning=FALSE}
 library(BVAR)
 library(tidyverse)
@@ -68,6 +70,88 @@ liquor |> gg_season(log_sales) +
 ```
 
 There appears to be a slight upward trend from January to December with the peak being in December and some small peaks in July and August. Over-time, consumption has increased as well to a higher sales level and following the same trend. The seasonal swings grow with the model which suggests that using logs reveals the true rates of changes and sales patterns.
+
+### Fit ARIMA and ETS models to the log of sales
+
+##### ARIMA
+
+```{r, include=FALSE, warning=FALSE}
+# 2.2a ARIMA and ETS
+liquor_fit <- liquor |>
+  model(arima = ARIMA(log(sales)),
+        ets   = ETS(log(sales)))
+```
+
+##### ETS
+
+```{r, echo=FALSE, warning=FALSE}
+liquor_fit |> select(arima) |> report()
+liquor_fit |> select(ets) |> report()
+```
+
+For the specifications for the ARIMA model were ARIMA(1,0,2)(2,1,1)\[12\] with drift. This tells us there was a seasonal difference at a lag of 12, indicating the series was differenced once against the same month from the previous year. The constant 0.0036, and total differencing d+D=1, this indicates a drift term. This indicates the year-over-year growth is trending upward over time.
+
+The three letters indicate a Holt-Winters Additive model with additive error, additive trend, and additive seasonality. Additive error means random forecast errors are added directly to predicted level, trend, and seasonal components with assumed $\sigma^2$ = 0.0007 across the log(sales) series. Additive trend means the slope is added to the level at each time step. We see that log(sales) is increasing at a constant amount each period, the original sales variable is increasing by a constant percentage over time. The smoothing parameter $\beta$ = 0.0076 shows that the slope changes very slowly and remains nearly constant. Additive seasonality mean the seasonal effects are added to the level and trend, meaning there is a constant magnitude on log(sales). $\gamma$ = 0.0002 indicates the seasonal pattern is practically fixed over time.
+
+### Ljung-Box Test at lag 24
+
+```{r, echo=FALSE, warning=FALSE}
+# 2.2b 
+liquor_fit |> select(arima) |> gg_tsresiduals()
+
+liquor_fit |>
+  select(arima) |>
+  augment() |>
+  features(.innov, ljung_box, lag = 24, dof = 6)
+```
+
+The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise.
+
+### The Horse Race
+
+```{r, echo=FALSE, warning=FALSE}
+# Horse Race 
+liquor_cv_fit <- readRDS("~/ec522_ps4_baros/results/liquor_cv_fit.rds")
+```
+
+There are 216 different forecast origins in this TS-CV.
+
+```{r, include=FALSE, warning=FALSE}
+# 2.3b one-month ahead forecast 
+liquor_cv_fc <- liquor_cv_fit |>
+  forecast(h = 1)
+
+liquor_cv_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
+```
+
+```{r, echo=FALSE, warning=FALSE}
+library(knitr)
+
+liquor_cv_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE)) |>
+  select(.model, RMSE, MAE) |>
+  knitr::kable(digits = 2)
+```
+
+The first and last forecasts for this are January 2002 to December 2019. The model that forecasts the most accurately is the ARIMA model. The ARIMA model wins for both the RMSE and MAE.
+
+```{r, include=FALSE, warning=FALSE}
+# 2.4 Are the differences significant?
+liquor_errs <- liquor_cv_fc |>
+  as_tibble() |>
+  left_join(as_tibble(liquor) |> select(Month, actual = sales),
+            by = "Month") |>
+  mutate(e = actual - .mean) |>
+  select(Month, .model, e) |>
+  pivot_wider(names_from = .model, values_from = e)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+forecast::dm.test(liquor_errs$arima, liquor_errs$ets, h = 1, power = 2)
+```
+
+The DM statistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts.
 
 ## Forecast Combination 
 

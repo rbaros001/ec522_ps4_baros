@@ -8,9 +8,9 @@ library(fpp3)
 ## Commit the results folder so that the repository holds everything needed to render the write-up 
 
 
-# ================================ #
-# PART 2 
-# ================================ #
+# ===================================================== #
+# PART 2 - A BUSINESS FORECAST HORSE RACE: ARIMA VS ETS
+# ===================================================== #
 
 # 2.1 The Data
 # 2.1a Load in data 
@@ -73,7 +73,7 @@ liquor_fit |> select(ets) |> report()
 ## The three letters indicate a Holt-Winters Additive model with additive error, additive trend, and additive seasonality. 
     ## Additive error means random forecast errors are added directly to predicted level, trend, and seasonal components with assumed $\sigma^2$ = 0.0007 across the log(sales) series. 
     ## Additive trend means the slope is added to the level at each time step. We see that log(sales) is increasing at a constant amount each period, the original sales variable is increasing by a constant percentage over time. The smoothing parameter $\beta$ = 0.0076 shows that the slope changes very slowly and remains nearly constant.
-    ## Additive seasonality meand the seasonal effects are added to the level and trend, meaning there is a constant magnitude on log(sales). $\gamma$ = 0.0002 indicates the seasonal pattern is practically fixed over time.
+    ## Additive seasonality mean the seasonal effects are added to the level and trend, meaning there is a constant magnitude on log(sales). $\gamma$ = 0.0002 indicates the seasonal pattern is practically fixed over time.
 
 # 2.2b 
 liquor_fit |> select(arima) |> gg_tsresiduals()
@@ -84,6 +84,7 @@ liquor_fit |>
   features(.innov, ljung_box, lag = 24, dof = 6)
 
 ## The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise. 
+
 
 # 2.3 The Horse Race 
 liquor_cv <- liquor |>
@@ -127,7 +128,58 @@ liquor_errs <- liquor_cv_fc |>
 
 forecast::dm.test(liquor_errs$arima, liquor_errs$ets, h = 1, power = 2)
 
-## The DM statiistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts. 
+## The DM statistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts. 
+
+
+# ================================ #
+# PART 3 - FORECAST COMBINATION
+# ================================ #
+
+# 3a. Forecast Combination
+liquor_combo_fc <- liquor_cv_fit |>
+  mutate(combo = (arima + ets) / 2) |>
+  forecast(h = 1)
+
+liquor_combo_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
+
+library(fable)
+library(dplyr)
+
+liquor_combo_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE)) |>
+  select(Model = .model, RMSE, MAE) |>
+  arrange(RMSE) |>
+  kable(
+    digits = 2,
+    format.args = list(big.mark = ","),
+    caption = "Forecast Accuracy Comparison"
+  )
+
+## Combo beats ETS but slightly falls short of ARIMA for both RMSE and MSE
+
+# 3b. Correlation between ARIMA and ETS forecast errors 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
