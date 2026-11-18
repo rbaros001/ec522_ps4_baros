@@ -73,16 +73,12 @@ There appears to be a slight upward trend from January to December with the peak
 
 ### Fit ARIMA and ETS models to the log of sales
 
-##### ARIMA
-
 ```{r, include=FALSE, warning=FALSE}
 # 2.2a ARIMA and ETS
 liquor_fit <- liquor |>
   model(arima = ARIMA(log(sales)),
         ets   = ETS(log(sales)))
 ```
-
-##### ETS
 
 ```{r, echo=FALSE, warning=FALSE}
 liquor_fit |> select(arima) |> report()
@@ -156,6 +152,33 @@ The DM statistic is -2.9062 with a p-value of 0.004042. We can reject the null h
 ## Forecast Combination 
 
 table and written answers from part 3
+
+```{r, include=FALSE, warning=FALSE}
+# 3a. Forecast Combination
+liquor_combo_fc <- liquor_cv_fit |>
+  mutate(combo = (arima + ets) / 2) |>
+  forecast(h = 1)
+
+liquor_combo_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE))
+```
+
+```{r, echo=FALSE, warning=FALSE}
+library(fable)
+library(dplyr)
+
+liquor_combo_fc |>
+  accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE)) |>
+  select(Model = .model, RMSE, MAE) |>
+  arrange(RMSE) |>
+  kable(
+    digits = 2,
+    format.args = list(big.mark = ","),
+    caption = "Forecast Accuracy Comparison"
+  )
+```
+
+Combo beats ETS but slightly falls short of ARIMA for both RMSE and MSE. The correlation between the forecast errors report to be 0.8792931. Since the combination gives equal weights to both models, the ETS has larger RMSE and MAE with increases the errors of the combination. The DM statistic tells us the ARIMA model is significantly more accurate than the ETS model
 
 ## VAR vs. BVAR
 

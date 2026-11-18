@@ -159,12 +159,49 @@ liquor_combo_fc |>
 ## Combo beats ETS but slightly falls short of ARIMA for both RMSE and MSE
 
 # 3b. Correlation between ARIMA and ETS forecast errors 
+cor(liquor_errs$arima, liquor_errs$ets)
+
+## The correlation between the forecast errors report to be 0.8792931. Since the combination gives equal weights to both models, the ETS has larger RMSE and MAE with increases the errors of the combination. The DM statistic tells us the ARIMA model is significantly more accurate than the ETS model
 
 
+# ==================================== #
+# PART 4 - A MEDIUM-SCALE VAR VS. BVAR
+# ==================================== #
 
+# 4.2a load FRED-QD data
+qd_raw <- read_csv("data/fredqd_2026-09.csv", show_col_types = FALSE) |>
+  slice(-(1:2))
 
+# 4.2b Build the series 
+growth <- function(x) 100 * difference(log(x))
 
+qd <- qd_raw |>
+  mutate(date = as.Date(sasdate, "%m/%d/%Y")) |>
+  transmute(date,
+            gdp    = growth(GDPC1),     # real GDP
+            cons   = growth(PCECC96),   # real consumption
+            inv    = growth(GPDIC1),    # real investment
+            emp    = growth(PAYEMS),    # payroll employment
+            infl   = growth(GDPCTPI),   # GDP price index
+            unrate = difference(UNRATE),     # unemployment rate
+            ffr    = difference(FEDFUNDS),   # federal funds rate
+            gs10   = difference(GS10)) |>    # 10-year Treasury yield
+  filter(date >= as.Date("1960-03-01"), date <= as.Date("2019-12-01"))
 
+y <- qd |> select(-date) |> as.matrix()
+
+nrow(y)
+head(y)
+
+# 4c. ts-cv with first 120 quarters training sample 
+N <- nrow(y)
+origins <- 120:(N - 1)
+actual <- y[121:N, ]
+
+range(qd$date, na.rm = TRUE)
+# 1960-03-01 to 2019-12-01
+
+## The date range of the first and last forecast is January 03, 1960 to January 10, 2019. The expanding window generates 120 forecasts per variable with a total of 960 forecasts. 
 
 
 

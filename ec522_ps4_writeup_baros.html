@@ -161,11 +161,6 @@ window.Quarto = {
 </section>
 <section id="fit-arima-and-ets-models-to-the-log-of-sales" class="level3">
 <h3 class="anchored" data-anchor-id="fit-arima-and-ets-models-to-the-log-of-sales">Fit ARIMA and ETS models to the log of sales</h3>
-<section id="arima" class="level5">
-<h5 class="anchored" data-anchor-id="arima">ARIMA</h5>
-</section>
-<section id="ets" class="level5">
-<h5 class="anchored" data-anchor-id="ets">ETS</h5>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>Series: sales 
@@ -203,7 +198,6 @@ Transformation: log(sales)
 </div>
 <p>For the specifications for the ARIMA model were ARIMA(1,0,2)(2,1,1)[12] with drift. This tells us there was a seasonal difference at a lag of 12, indicating the series was differenced once against the same month from the previous year. The constant 0.0036, and total differencing d+D=1, this indicates a drift term. This indicates the year-over-year growth is trending upward over time.</p>
 <p>The three letters indicate a Holt-Winters Additive model with additive error, additive trend, and additive seasonality. Additive error means random forecast errors are added directly to predicted level, trend, and seasonal components with assumed <span class="math inline">\(\sigma^2\)</span> = 0.0007 across the log(sales) series. Additive trend means the slope is added to the level at each time step. We see that log(sales) is increasing at a constant amount each period, the original sales variable is increasing by a constant percentage over time. The smoothing parameter <span class="math inline">\(\beta\)</span> = 0.0076 shows that the slope changes very slowly and remains nearly constant. Additive seasonality mean the seasonal effects are added to the level and trend, meaning there is a constant magnitude on log(sales). <span class="math inline">\(\gamma\)</span> = 0.0002 indicates the seasonal pattern is practically fixed over time.</p>
-</section>
 </section>
 <section id="ljung-box-test-at-lag-24" class="level3">
 <h3 class="anchored" data-anchor-id="ljung-box-test-at-lag-24">Ljung-Box Test at lag 24</h3>
@@ -275,6 +269,43 @@ alternative hypothesis: two.sided</code></pre>
 <section id="forecast-combination" class="level2">
 <h2 class="anchored" data-anchor-id="forecast-combination">Forecast Combination</h2>
 <p>table and written answers from part 3</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Forecast Accuracy Comparison</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">RMSE</th>
+<th style="text-align: right;">MAE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">arima</td>
+<td style="text-align: right;">81.43</td>
+<td style="text-align: right;">65.65</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">combo</td>
+<td style="text-align: right;">85.19</td>
+<td style="text-align: right;">66.77</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ets</td>
+<td style="text-align: right;">94.35</td>
+<td style="text-align: right;">72.31</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">snaive</td>
+<td style="text-align: right;">161.26</td>
+<td style="text-align: right;">136.63</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Combo beats ETS but slightly falls short of ARIMA for both RMSE and MSE. The correlation between the forecast errors report to be 0.8792931. Since the combination gives equal weights to both models, the ETS has larger RMSE and MAE with increases the errors of the combination. The DM statistic tells us the ARIMA model is significantly more accurate than the ETS model</p>
 </section>
 <section id="var-vs.-bvar" class="level2">
 <h2 class="anchored" data-anchor-id="var-vs.-bvar">VAR vs.&nbsp;BVAR</h2>
