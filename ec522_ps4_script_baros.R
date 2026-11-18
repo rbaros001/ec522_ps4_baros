@@ -348,17 +348,78 @@ tibble(date = fm$date, F1 = F1) |>
 sort(abs(cor(pc$x[, 1], Z))[1, ], decreasing = TRUE)[1:8]
 sort(abs(cor(pc$x[, 2], Z))[1, ], decreasing = TRUE)[1:8]
 
-## The 8 most correlated: Based on these series and the plot, it seems as though the factors capture consumption variables, or economic production and activity. We can see this with the various dips due to recessions. 
-  ## CUSR0000SAC: CPI: commodities 
-  ## DNDGRG3M086SBEA: Person Consumption Expenditure: Nondurable goods 
-  ## CUSR0000SA0L2: CPI: all items less shelter 
-  ## CPIAUCSL: CPI: all items 
-  ## CUSR0000SA0L5: CPI: all items less medical care
-  ## CPITRNSL: CPI: transportation 
-  ## PCEPI: Personal Consumption Expenditure: chain index
-  ## CPIULFSL: CPI: all items less food
+## Factor 1: The 8 most correlated: Based on thee series and the plot, it sees as though the factors capture economic production and activity. 
+  ## PAYEMS: All employees: Non-farm
+  ## IPMANSICS: IP:   manufacturing (SIC)
+  ## USGOOD:          All employees: Goods-producing industries 
+  ## INDPRO:          IP index
+  ## MANEMP:          All employees: Manufacturing 
+  ## IPFPNSS:         IP: Final products and nonindustrial supplies 
+  ## CUMFNS:          Capacity utilization: manufacturing 
+  ## DMANEMP:         All employees: Durable goods
 
+## Factor 2: The 8 most correlated: Based on these series and the plot, it seems as though the factors capture consumption variables, or the Consumer Price Index (CPI). We can see this with the various dips due to recessions. 
+  ## CUSR0000SAC:     CPI: commodities 
+  ## DNDGRG3M086SBEA: Person Consumption Expenditure: Non-durable goods 
+  ## CUSR0000SA0L2:   CPI: all items less shelter 
+  ## CPIAUCSL:        CPI: all items 
+  ## CUSR0000SA0L5:   CPI: all items less medical care
+  ## CPITRNSL:        CPI: transportation 
+  ## PCEPI:           Personal Consumption Expenditure: chain index
+  ## CPIULFSL:        CPI: all items less food
 
+# 5.3 Replicate the Horse Race from Class
+ip <- fm$INDPRO
+Z_mat <- as.matrix(Z)          # Ensure Z is treated as a matrix
+n <- nrow(Z_mat)
+
+# Safely find the integer row index
+match_idx <- which(fm$date == as.Date("1989-12-01"))
+if (length(match_idx) == 0) stop("Date not found in fm$date!")
+init <- match_idx[1]          # Take the first match if there are duplicates
+
+e_ar <- NULL
+e_fa <- NULL
+for (T in init:(n - 1)) {
+  F_T <- prcomp(scale(Z_mat[1:T, ]))$x[, 1:3]
+  d <- data.frame(y_next = ip[2:T], y = ip[1:(T - 1)], F_T[1:(T - 1), ])
+  new <- data.frame(y = ip[T], t(F_T[T, ]))
+  e_ar <- c(e_ar, ip[T + 1] - predict(lm(y_next ~ y, d), new))
+  e_fa <- c(e_fa, ip[T + 1] - predict(lm(y_next ~ ., d), new))
+}
+
+c(RMSE_AR = sqrt(mean(e_ar^2)), RMSE_FA = sqrt(mean(e_fa^2)))
+
+## The RMSE_AR = 0.617 and RMSE_FA = 0.589, which matches the numbers found in class. We couldn't estimate the factors once using the full sample for the horse race because this introduces information leakage which invalidates out of sample forecasts.
+
+# 5.4 A direct forecast of inflation 
+
+direct_race <- function(series, h = 12, r = 3) {
+  lv <- md |>
+    mutate(log_x = log(.data[[series]]),
+           g = 100 * (log_x - lag(log_x))) |>
+    filter(date >= as.Date("1960-03-01"), date <= as.Date("2019-12-01"))
+  yh <- 100 * (lead(lv$log_x, h) - lv$log_x)      # growth over the next h months
+  g  <- lv$g                                      # growth over the latest month
+  
+  e_ar <- NULL
+  e_fa <- NULL
+  for (T in init:(n - h)) {
+    F_T <- prcomp(scale(Z[1:T, ]))$x[, 1:r, drop = FALSE]
+    i <- 1:(T - h)
+    d <- data.frame(yh = yh[i], g = g[i], F_T[i, , drop = FALSE])
+    new <- data.frame(g = g[T], F_T[T, , drop = FALSE])
+    e_ar <- c(e_ar, yh[T] - predict(lm(yh ~ g, d), new))
+    e_fa <- c(e_fa, yh[T] - predict(lm(yh ~ ., d), new))
+  }
+  tibble(series, forecasts = length(e_ar),
+         RMSE_AR = sqrt(mean(e_ar^2)), RMSE_FA = sqrt(mean(e_fa^2)),
+         MAE_AR = mean(abs(e_ar)), MAE_FA = mean(abs(e_fa)),
+         DM_pvalue = forecast::dm.test(e_ar, e_fa, h = h, power = 2,
+                                       varestimator = "bartlett")$p.value)
+}
+
+direct_race("CPIAUCSL")
 
 
 
