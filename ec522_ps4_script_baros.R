@@ -203,19 +203,89 @@ range(qd$date, na.rm = TRUE)
 
 ## The date range of the first and last forecast is January 03, 1960 to January 10, 2019. The expanding window generates 120 forecasts per variable with a total of 960 forecasts. 
 
+# 4.2 OLS VAR
 
+var_ols_fc <- function(z, p) {
+  e <- embed(z, p + 1)            # columns: y_t, then its lags 1 to p
+  M <- ncol(z)                    # number of variables
+  B <- coef(lm(e[, 1:M] ~ e[, -(1:M)]))
+  x <- c(1, t(z[nrow(z):(nrow(z) - p + 1), ]))   # constant, latest p lags
+  x %*% B
+}
 
+fc_var1 <- NULL
+fc_var4 <- NULL
+for (T in origins) {
+  fc_var1 <- rbind(fc_var1, var_ols_fc(y[1:T, ], 1))
+  fc_var4 <- rbind(fc_var4, var_ols_fc(y[1:T, ], 4))
+}
 
+rmse_by_var <- function(f) sqrt(colMeans((actual - f)^2))
 
+rmse_by_var(fc_var1)
+rmse_by_var(fc_var4)
 
+## VAR(1) forecasts better for all variables except for inflation rate (infl). The smaller forecast may be better because there is less noise and avoids out of sample estimation error and overfitting. 
 
+# 4.3 BVAR
+# 4.2a
+bvar_cv <- function(lambda) {
+  pr <- bv_priors(hyper = "lambda",
+                  mn = bv_mn(lambda = bv_lambda(mode = lambda, sd = 0.4,
+                                                min = 0.999 * lambda,
+                                                max = 1.001 * lambda),
+                             b = 0))
+  fc <- NULL
+  for (T in origins) {
+    fit_T <- bvar(y[1:T, ], lags = 4, priors = pr,
+                  n_draw = 2000, n_burn = 1000, verbose = FALSE)
+    x <- c(1, t(y[T:(T - 3), ]))         # constant and 4 lags of each variable
+    fc <- rbind(fc, x %*% coef(fit_T))   # forecast of y_{T+1}
+  }
+  fc
+}
 
+set.seed(422)
+fc_bvar_03 <- bvar_cv(0.3)
+saveRDS(fc_bvar_03, "results/fc_bvar_03.rds")
+fc_bvar_03 <- readRDS("~/ec522_ps4_baros/results/fc_bvar_03.rds")
 
+# 4.3b
+set.seed(422)
+fc_bvar_005 <- bvar_cv(0.05)
 
+var_results <- tibble(
+  Variable = colnames(y),
+  `VAR(1)` = rmse_by_var(fc_var1),
+  `VAR(4)` = rmse_by_var(fc_var4),
+  `BVAR(4), lambda = 0.3` = rmse_by_var(fc_bvar_03),
+  `BVAR(4), lambda = 0.05` = rmse_by_var(fc_bvar_005)
+)
 
+saveRDS(var_results, "results/var_results.rds")
+var_results <- readRDS("~/ec522_ps4_baros/results/var_results.rds")
 
+var_results |> knitr::kable(digits = 3)
 
+## The BVAR(4) with $\lambda$ = 0.3 has lower values compared to OLS VAR(4). The BVAR(4) adds a prior distribution which shrinks estimated parameters towards simpler baselines which reduces overfitting. Compared to VAR(1), the BVAR(4) with $\lambda$ = 0.3 estimates are much higher. This is most lively due to more noise from BVAR(4) since there are more time lags. VAR(1) has fewer degrees of freedom to estimate which keeps the forecast variance low. With BVAR(4) and $\lambda$ = 0.05, this tells the model could be suffering from over shrinkage causing the model to ignore real dynamic patterns.
+## The RMSE for VAR(1) may not be a fair estimate of how accurately it will forecast in the future because the RMSE is still relatively large. 
 
+# 4.3c GDP growth DM test 
+e_var4 <- actual[, "gdp"] - fc_var4[, 1]
+e_bvar <- actual[, "gdp"] - fc_bvar_03[, 1]
+
+forecast::dm.test(e_var4, e_bvar, h = 1, power = 2)
+# DM = 2.1366, p-value = 0.03468
+
+  # unrate DM test 
+u_var4 <- actual[, "unrate"] - fc_var4[, 1]
+u_bvar <- actual[, "unrate"] - fc_bvar_03[, 1]
+
+forecast::dm.test(u_var4, u_bvar, h = 1, power = 2)
+# DM = 0.91508, p-value = 0.362
+
+## The DM test statistic for GDP is statistically significant and tells us that the BVAR(4) outperforms and is more statistically accurate to the VAR(4) model. The DM test statistic for unemployment rate was not statistically significant between the two models which signals that the models give roughly the same forecast performance.
+## The DM test statistics for GDP and Unemployment rate tell us that VAR(1) could still be the best option. More comparisons would need to be run to confidently conclude this.
 
 
 
