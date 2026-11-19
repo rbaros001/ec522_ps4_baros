@@ -17,14 +17,13 @@ execute:
 
 ## ARIMA vs. ETS
 
-include plots, model reports, accuracy tables, DM test results, written answers to part 2
-
 ### Plots of US Retail Sales: Beer, Wine, and Liquor Stores
 
 ```{r, include=FALSE, warning=FALSE}
 library(BVAR)
 library(tidyverse)
 library(fpp3)
+library(knitr)
 
 # 2.1a Load in data 
 
@@ -81,8 +80,35 @@ liquor_fit <- liquor |>
 ```
 
 ```{r, echo=FALSE, warning=FALSE}
-liquor_fit |> select(arima) |> report()
-liquor_fit |> select(ets) |> report()
+liquor_fit |>
+  select(arima) |>
+  tidy() |>
+  select(
+    Term = term,
+    Estimate = estimate,
+    `Std. Error` = std.error,
+    Statistic = statistic,
+    `p-value` = p.value
+  ) |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "ARIMA Parameter Estimates"
+  )
+
+liquor_fit |>
+  select(ets) |>
+  tidy() |>
+  select(
+    Term = term,
+    Estimate = estimate
+  ) |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "ETS Model Parameters"
+  )
+# fix tables 
 ```
 
 For the specifications for the ARIMA model were ARIMA(1,0,2)(2,1,1)\[12\] with drift. This tells us there was a seasonal difference at a lag of 12, indicating the series was differenced once against the same month from the previous year. The constant 0.0036, and total differencing d+D=1, this indicates a drift term. This indicates the year-over-year growth is trending upward over time.
@@ -94,11 +120,34 @@ The three letters indicate a Holt-Winters Additive model with additive error, ad
 ```{r, echo=FALSE, warning=FALSE}
 # 2.2b 
 liquor_fit |> select(arima) |> gg_tsresiduals()
+```
 
+```{r, include=FALSE, warning=FALSE}
 liquor_fit |>
   select(arima) |>
   augment() |>
   features(.innov, ljung_box, lag = 24, dof = 6)
+```
+
+```{r, echo=FALSE, warning=FALSE}
+library(feasts)
+library(dplyr)
+library(knitr)
+
+liquor_fit |>
+  select(arima) |>
+  augment() |>
+  features(.innov, ljung_box, lag = 24, dof = 6) |>
+  select(
+    Model = .model,
+    Statistic = lb_stat,
+    `p-value` = lb_pvalue
+  ) |>
+  kable(
+    digits = 2,
+    format.args = list(big.mark = ","),
+    caption = "Ljung-Box Test for Residual Autocorrelation"
+  )
 ```
 
 The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise.
@@ -126,8 +175,9 @@ library(knitr)
 
 liquor_cv_fc |>
   accuracy(liquor, measures = list(RMSE = RMSE, MAE = MAE)) |>
-  select(.model, RMSE, MAE) |>
-  knitr::kable(digits = 2)
+  select(Model = .model, RMSE, MAE) |>
+  knitr::kable(digits = 2,
+               caption = "The Horse Race")
 ```
 
 The first and last forecasts for this are January 2002 to December 2019. The model that forecasts the most accurately is the ARIMA model. The ARIMA model wins for both the RMSE and MAE.
@@ -141,17 +191,27 @@ liquor_errs <- liquor_cv_fc |>
   mutate(e = actual - .mean) |>
   select(Month, .model, e) |>
   pivot_wider(names_from = .model, values_from = e)
-```
-
-```{r, echo=FALSE, warning=FALSE}
 forecast::dm.test(liquor_errs$arima, liquor_errs$ets, h = 1, power = 2)
 ```
 
-The DM statistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts.
+```{r, echo=FALSE, warning=FALSE}
+library(broom)
+library(dplyr)
+library(knitr)
+
+forecast::dm.test(liquor_errs$arima, liquor_errs$ets, h = 1, power = 2) |>
+  tidy() |>
+  select(Statistic = statistic, "p-value" = p.value, Alternative = alternative) |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Diebold-Mariano Test: ARIMA vs ETS"
+  )
+```
+
+The DM statistic is -2.9062 with a p-value of 0.004042 over one forecast horizon with quadratic loss. We can reject the null hypothesis that ARIMA and ETS have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts.
 
 ## Forecast Combination 
-
-table and written answers from part 3
 
 ```{r, include=FALSE, warning=FALSE}
 # 3a. Forecast Combination
@@ -184,8 +244,332 @@ Combo beats ETS but slightly falls short of ARIMA for both RMSE and MSE. The cor
 
 RMSE table, DM test results, and written responses to part 4. report the numbers from saveRDS()
 
+```{r, include=FALSE, warning=FALSE}
+# 4.2a load FRED-QD data
+qd_raw <- read_csv("data/fredqd_2026-09.csv", show_col_types = FALSE) |>
+  slice(-(1:2))
+
+# 4.2b Build the series 
+growth <- function(x) 100 * difference(log(x))
+
+qd <- qd_raw |>
+  mutate(date = as.Date(sasdate, "%m/%d/%Y")) |>
+  transmute(date,
+            gdp    = growth(GDPC1),     # real GDP
+            cons   = growth(PCECC96),   # real consumption
+            inv    = growth(GPDIC1),    # real investment
+            emp    = growth(PAYEMS),    # payroll employment
+            infl   = growth(GDPCTPI),   # GDP price index
+            unrate = difference(UNRATE),     # unemployment rate
+            ffr    = difference(FEDFUNDS),   # federal funds rate
+            gs10   = difference(GS10)) |>    # 10-year Treasury yield
+  filter(date >= as.Date("1960-03-01"), date <= as.Date("2019-12-01"))
+
+y <- qd |> select(-date) |> as.matrix()
+
+# 4c. ts-cv with first 120 quarters training sample 
+N <- nrow(y)
+origins <- 120:(N - 1)
+actual <- y[121:N, ]
+
+range(qd$date, na.rm = TRUE)
+# 1960-03-01 to 2019-12-01
+```
+
+The date range of the first and last forecast is January 03, 1960 to January 10, 2019. The expanding window generates 120 forecasts per variable with a total of 960 forecasts.
+
+```{r, include=FALSE, warning=FALSE}
+# 4.2 OLS VAR
+
+var_ols_fc <- function(z, p) {
+  e <- embed(z, p + 1)            # columns: y_t, then its lags 1 to p
+  M <- ncol(z)                    # number of variables
+  B <- coef(lm(e[, 1:M] ~ e[, -(1:M)]))
+  x <- c(1, t(z[nrow(z):(nrow(z) - p + 1), ]))   # constant, latest p lags
+  x %*% B
+}
+
+fc_var1 <- NULL
+fc_var4 <- NULL
+for (T in origins) {
+  fc_var1 <- rbind(fc_var1, var_ols_fc(y[1:T, ], 1))
+  fc_var4 <- rbind(fc_var4, var_ols_fc(y[1:T, ], 4))
+}
+
+rmse_by_var <- function(f) sqrt(colMeans((actual - f)^2))
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+# fix x and make tables smaller
+rmse_by_var(fc_var1) |>
+  knitr::kable(
+    col.names = c("Series", "Statistic"),
+    digits = 8,
+    caption = "RMSE VAR(1)"
+  ) 
+
+rmse_by_var(fc_var4) |>
+  knitr::kable(
+    col.names = c("Series", "Statistic"),
+    digits = 8,
+    caption = "RMSE VAR(4)"
+  ) 
+```
+
+VAR(1) forecasts better for all variables except for inflation rate (infl). The smaller forecast may be better because there is less noise and avoids out of sample estimation error and overfitting.
+
+```{r, include=FALSE, warning=FALSE}
+# 4.3 BVAR
+# 4.2a
+bvar_cv <- function(lambda) {
+  pr <- bv_priors(hyper = "lambda",
+                  mn = bv_mn(lambda = bv_lambda(mode = lambda, sd = 0.4,
+                                                min = 0.999 * lambda,
+                                                max = 1.001 * lambda),
+                             b = 0))
+  fc <- NULL
+  for (T in origins) {
+    fit_T <- bvar(y[1:T, ], lags = 4, priors = pr,
+                  n_draw = 2000, n_burn = 1000, verbose = FALSE)
+    x <- c(1, t(y[T:(T - 3), ]))         # constant and 4 lags of each variable
+    fc <- rbind(fc, x %*% coef(fit_T))   # forecast of y_{T+1}
+  }
+  fc
+}
+
+
+fc_bvar_03 <- readRDS("~/ec522_ps4_baros/results/fc_bvar_03.rds")
+
+# 4.3b
+
+var_results <- readRDS("~/ec522_ps4_baros/results/var_results.rds")
+```
+
+```{r, echo=FALSE, warning=FALSE}
+var_results |> knitr::kable(digits = 3,
+                            caption = "VAR and BVAR Estimates")
+```
+
+The BVAR(4) with $\lambda$ = 0.3 has lower values compared to OLS VAR(4). The BVAR(4) adds a prior distribution which shrinks estimated parameters towards simpler baselines which reduces overfitting. Compared to VAR(1), the BVAR(4) with $\lambda$ = 0.3 estimates are much higher. This is most lively due to more noise from BVAR(4) since there are more time lags. VAR(1) has fewer degrees of freedom to estimate which keeps the forecast variance low. With BVAR(4) and $\lambda$ = 0.05, this tells the model could be suffering from over shrinkage causing the model to ignore real dynamic patterns.
+
+The RMSE for VAR(1) may not be a fair estimate of how accurately it will forecast in the future because the RMSE is still relatively large.
+
+```{r, echo=FALSE, warning=FALSE}
+# 4.3c GDP growth DM test 
+e_var4 <- actual[, "gdp"] - fc_var4[, 1]
+e_bvar <- actual[, "gdp"] - fc_bvar_03[, 1]
+
+forecast::dm.test(e_var4, e_bvar, h = 1, power = 2)|> 
+  tidy() |>
+  select(Statistic = statistic, "p-value" = p.value, Alternative = alternative) |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Diebold-Mariano Test: GDP Rate VAR vs BVAR"
+  )
+# DM = 2.1366, p-value = 0.03468
+
+
+```
+
+```{r, echo=FALSE, warning=FALSE}
+# unrate DM test 
+u_var4 <- actual[, "unrate"] - fc_var4[, 1]
+u_bvar <- actual[, "unrate"] - fc_bvar_03[, 1]
+
+forecast::dm.test(u_var4, u_bvar, h = 1, power = 2) |> 
+  tidy() |>
+  select(Statistic = statistic, "p-value" = p.value, Alternative = alternative) |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Diebold-Mariano Test: Unemployment Rate VAR vs BVAR"
+  )
+# DM = 0.91508, p-value = 0.362
+```
+
+The DM test statistic for GDP is statistically significant and tells us that the BVAR(4) outperforms and is more statistically accurate to the VAR(4) model. The DM test statistic for unemployment rate was not statistically significant between the two models which signals that the models give roughly the same forecast performance.
+
+The DM test statistics for GDP and Unemployment rate tell us that VAR(1) could still be the best option. More comparisons would need to be run to confidently conclude this.
+
 ## Factor Model 
 
 include plot, results, and written answers to part 5
 
+```{r, include=FALSE, warning=FALSE}
+# 5.1a Data: September 1016 vintage of FRED-MD
+md_raw <- read_csv("data/fredmd_2026-09.csv", show_col_types = FALSE)
+tcode <- unlist(md_raw[1, -1])
+md <- md_raw[-1, ] |> mutate(date = as.Date(sasdate, "%m/%d/%Y"))
+
+transform_series <- function(x, code) {
+  d <- function(v) c(NA, diff(v))
+  switch(as.character(code),
+         "1" = x,                      # level
+         "2" = d(x),                   # first difference
+         "3" = d(d(x)),                # second difference
+         "4" = log(x),                 # log
+         "5" = 100 * d(log(x)),        # growth rate
+         "6" = 100 * d(d(log(x))),     # change in the growth rate
+         "7" = d(x / dplyr::lag(x) - 1))
+}
+
+# 5.1b Apply the transformations 
+fm <- map2_dfc(md[names(tcode)], tcode, transform_series) |>
+  mutate(date = md$date, .before = 1) |>
+  filter(date >= as.Date("1960-03-01"), date <= as.Date("2019-12-01"))
+
+fm <- fm[, colSums(is.na(fm)) == 0]
+
+dim(fm)
+```
+
+The transformation differences depends on what we are interested in observing. The first difference of FEDFUNDS removes randomness and give us the a stationary rates of change. The growth rate for INDPRO was taken because the variable could have exhibited seasonality and therefore to understand the true underlying growth of this variable, we would find the log of the variable \* 100. The first difference measures absolute change, the growth rate measures the percentage change over time.
+
+```{r, echo=FALSE, warning=FALSE}
+tcode[c("INDPRO", "PAYEMS", "CPIAUCSL", "FEDFUNDS")] |>
+  tidy() |>
+  select(
+    Variable = names,
+    `Transformation Code` = x
+  ) |>
+  knitr::kable(
+    caption = "FRED-MD Transformation Codes"
+  )
+```
+
+INDPRO: code 5, growth rate. PAYEMS: code 5, growth rate. CPIAUCSL: code 6, change in growth rate. FEDFUNDS: code 2, first difference
+
+```{r, echo=FALSE, warning=FALSE}
+# 5.2a Estimating the Factors 
+Z <- fm |> select(-date) |> as.matrix()
+
+pc <- prcomp(scale(Z))
+
+summary(pc)$importance[, 1:5] |>
+  as.data.frame() |>
+  rownames_to_column(var = "Metric") |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Principal Component Importance (PC1–PC5)"
+  )
+```
+
+The principal components are estimates of the dynamic factors. These are linear combinations, weighted averages, of all the data. The share of the variation in all 121 series of the first three factors explain how much these dynamic factors move together. The first three factors explain 29% of the variation in all of the series. The first factor, PC1 = 0.149840, explains the real activity factor. The second, PC2 = 0.223910, explains the inflation factor. The third, PC3 = 0.294530, explains price variables.
+
+```{r, echo=FALSE, warning=FALSE}
+# 5.2b 
+
+F1 <- pc$x[, 1] * sign(cor(pc$x[, 1], fm$INDPRO))
+
+tibble(date = fm$date, F1 = F1) |>
+  ggplot(aes(date, F1)) +
+  geom_line() +
+  labs(title = "First Factor from FRED-MD", x = NULL, y = NULL) +
+  theme_minimal()
+
+# 5.2c find 8 series most correlated with each of the first two factors:
+
+sort(abs(cor(pc$x[, 1], Z))[1, ], decreasing = TRUE)[1:8] |>
+  enframe(name = "Variable", value = "Abs. Correlation") |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Top 8 Variable Correlations with PC1 (Absolute Value)"
+  )
+
+sort(abs(cor(pc$x[, 2], Z))[1, ], decreasing = TRUE)[1:8] |>
+  enframe(name = "Variable", value = "Abs. Correlation") |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Top 8 Variable Correlations with PC2 (Absolute Value)"
+  )
+```
+
+Factor 1: The 8 most correlated: Based on the series and the plot, it seems as though the factors capture economic production and activity. This is visible in the plot through the dips during major recession periods.
+
+Factor 2: The 8 most correlated: Based on these series and the plot, it seems as though the factors capture consumption variables, or the Consumer Price Index (CPI). Similarly, we can see this with the various dips due to recessions.
+
+```{r, echo=FALSE, warning=FALSE}
+# 5.3 Replicate the Horse Race from Class
+ip <- fm$INDPRO
+Z_mat <- as.matrix(Z)          # Ensure Z is treated as a matrix
+n <- nrow(Z_mat)
+
+# Safely find the integer row index
+match_idx <- which(fm$date == as.Date("1989-12-01"))
+if (length(match_idx) == 0) stop("Date not found in fm$date!")
+init <- match_idx[1]          # Take the first match if there are duplicates
+
+e_ar <- NULL
+e_fa <- NULL
+for (T in init:(n - 1)) {
+  F_T <- prcomp(scale(Z_mat[1:T, ]))$x[, 1:3]
+  d <- data.frame(y_next = ip[2:T], y = ip[1:(T - 1)], F_T[1:(T - 1), ])
+  new <- data.frame(y = ip[T], t(F_T[T, ]))
+  e_ar <- c(e_ar, ip[T + 1] - predict(lm(y_next ~ y, d), new))
+  e_fa <- c(e_fa, ip[T + 1] - predict(lm(y_next ~ ., d), new))
+}
+
+c(RMSE_AR = sqrt(mean(e_ar^2)), RMSE_FA = sqrt(mean(e_fa^2))) |>
+  tidy() |>
+  select(
+    RMSE = names,
+    `Statistic` = x
+  ) |>
+  knitr::kable(
+    caption = "Horse Race RMSE AR(1) and RMSE with Factors"
+  )
+```
+
+The RMSE_AR = 0.617 and RMSE_FA = 0.589, which matches the numbers found in class. We couldn't estimate the factors once using the full sample for the horse race because this introduces information leakage which invalidates out of sample forecasts.
+
+```{r, echo=FALSE, warning=FALSE}
+# 5.4 A direct forecast of inflation 
+
+direct_race <- function(series, h = 12, r = 3) {
+  lv <- md |>
+    mutate(log_x = log(.data[[series]]),
+           g = 100 * (log_x - lag(log_x))) |>
+    filter(date >= as.Date("1960-03-01"), date <= as.Date("2019-12-01"))
+  yh <- 100 * (lead(lv$log_x, h) - lv$log_x)      # growth over the next h months
+  g  <- lv$g                                      # growth over the latest month
+  
+  e_ar <- NULL
+  e_fa <- NULL
+  for (T in init:(n - h)) {
+    F_T <- prcomp(scale(Z[1:T, ]))$x[, 1:r, drop = FALSE]
+    i <- 1:(T - h)
+    d <- data.frame(yh = yh[i], g = g[i], F_T[i, , drop = FALSE])
+    new <- data.frame(g = g[T], F_T[T, , drop = FALSE])
+    e_ar <- c(e_ar, yh[T] - predict(lm(yh ~ g, d), new))
+    e_fa <- c(e_fa, yh[T] - predict(lm(yh ~ ., d), new))
+  }
+  tibble(series, forecasts = length(e_ar),
+         RMSE_AR = sqrt(mean(e_ar^2)), RMSE_FA = sqrt(mean(e_fa^2)),
+         MAE_AR = mean(abs(e_ar)), MAE_FA = mean(abs(e_fa)),
+         DM_pvalue = forecast::dm.test(e_ar, e_fa, h = h, power = 2,
+                                       varestimator = "bartlett")$p.value)
+}
+
+
+direct_race("CPIAUCSL") |>
+  as.data.frame() |>
+  rownames_to_column(var = "Model") |>
+  kable(
+    digits = 4,
+    format.args = list(big.mark = ","),
+    caption = "Direct Forecast Race: CPIAUCSL"
+  )
+```
+
+The factors improve the forecast of 12-month CPI inflation. The RMSE drops by about 10.43% and the MAE drops by about 14.56% and the difference is statistically significant.
+
 ## Reflection 
+
+It was very interesting to see how the different forecast models opperrate and how they compare to each other.
+
+When simple models are hard to beat, this indicated that adding extra layers of complexity introduces more noise into the estimation. With less variables, there is lower estimation error and better out-of-sample generalization. Shrinkage, equal weights, and factors all try to add structure to the data to try to get more accurate results but this also introduces bias. There was a pattern of when the models increased complexity, there were larger errors, which makes sense because bias is being introduced to the model.

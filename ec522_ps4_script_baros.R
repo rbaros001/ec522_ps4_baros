@@ -421,28 +421,4 @@ direct_race <- function(series, h = 12, r = 3) {
 
 direct_race("CPIAUCSL")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+## Yes, the factors improve the forecast of 12-month CPI inflation. The RMSE drops by about 10.43% and the MAE drops by about 14.56%. The difference is statistically significant. 

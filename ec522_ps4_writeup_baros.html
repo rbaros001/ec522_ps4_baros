@@ -138,7 +138,6 @@ window.Quarto = {
 <p><strong>GitHub repo:</strong> <a href="https://github.com/rbaros001/ec522_ps4_baros.git" class="uri">https://github.com/rbaros001/ec522_ps4_baros.git</a></p>
 <section id="arima-vs.-ets" class="level2">
 <h2 class="anchored" data-anchor-id="arima-vs.-ets">ARIMA vs.&nbsp;ETS</h2>
-<p>include plots, model reports, accuracy tables, DM test results, written answers to part 2</p>
 <section id="plots-of-us-retail-sales-beer-wine-and-liquor-stores" class="level3">
 <h3 class="anchored" data-anchor-id="plots-of-us-retail-sales-beer-wine-and-liquor-stores">Plots of US Retail Sales: Beer, Wine, and Liquor Stores</h3>
 <div class="cell">
@@ -162,38 +161,151 @@ window.Quarto = {
 <section id="fit-arima-and-ets-models-to-the-log-of-sales" class="level3">
 <h3 class="anchored" data-anchor-id="fit-arima-and-ets-models-to-the-log-of-sales">Fit ARIMA and ETS models to the log of sales</h3>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>Series: sales 
-Model: ARIMA(1,0,2)(2,1,1)[12] w/ drift 
-Transformation: log(sales) 
-
-Coefficients:
-         ar1      ma1     ma2    sar1     sar2     sma1  constant
-      0.8948  -0.7374  0.2477  0.3679  -0.2334  -0.8845    0.0036
-s.e.  0.0355   0.0697  0.0623  0.0668   0.0665   0.0468    0.0001
-
-sigma^2 estimated as 0.0005469:  log likelihood=752.43
-AIC=-1488.85   AICc=-1488.4   BIC=-1458.61</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>ARIMA Parameter Estimates</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Term</th>
+<th style="text-align: right;">Estimate</th>
+<th style="text-align: right;">Std. Error</th>
+<th style="text-align: right;">Statistic</th>
+<th style="text-align: right;">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">ar1</td>
+<td style="text-align: right;">0.8948</td>
+<td style="text-align: right;">0.0355</td>
+<td style="text-align: right;">25.2112</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">ma1</td>
+<td style="text-align: right;">-0.7374</td>
+<td style="text-align: right;">0.0697</td>
+<td style="text-align: right;">-10.5855</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ma2</td>
+<td style="text-align: right;">0.2477</td>
+<td style="text-align: right;">0.0623</td>
+<td style="text-align: right;">3.9734</td>
+<td style="text-align: right;">1e-04</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sar1</td>
+<td style="text-align: right;">0.3679</td>
+<td style="text-align: right;">0.0668</td>
+<td style="text-align: right;">5.5098</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">sar2</td>
+<td style="text-align: right;">-0.2334</td>
+<td style="text-align: right;">0.0665</td>
+<td style="text-align: right;">-3.5100</td>
+<td style="text-align: right;">5e-04</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">sma1</td>
+<td style="text-align: right;">-0.8845</td>
+<td style="text-align: right;">0.0468</td>
+<td style="text-align: right;">-18.9150</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">constant</td>
+<td style="text-align: right;">0.0036</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">33.5109</td>
+<td style="text-align: right;">0e+00</td>
+</tr>
+</tbody>
+</table>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Series: sales 
-Model: ETS(A,A,A) 
-Transformation: log(sales) 
-  Smoothing parameters:
-    alpha = 0.3296099 
-    beta  = 0.007560263 
-    gamma = 0.0001765132 
-
-  Initial states:
-     l[0]         b[0]      s[0]      s[-1]        s[-2]       s[-3]      s[-4]
- 7.412219 0.0007608238 0.3263441 0.03153301 -0.004849389 -0.03530501 0.02512163
-      s[-5]      s[-6]      s[-7]       s[-8]      s[-9]     s[-10]     s[-11]
- 0.05558624 0.01219515 0.02503206 -0.06088935 -0.0607952 -0.1578065 -0.1561667
-
-  sigma^2:  7e-04
-
-      AIC      AICc       BIC 
--489.1517 -487.2272 -424.2608 </code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>ETS Model Parameters</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Term</th>
+<th style="text-align: right;">Estimate</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">alpha</td>
+<td style="text-align: right;">0.3296</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">beta</td>
+<td style="text-align: right;">0.0076</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">gamma</td>
+<td style="text-align: right;">0.0002</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">l[0]</td>
+<td style="text-align: right;">7.4122</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">b[0]</td>
+<td style="text-align: right;">0.0008</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">s[0]</td>
+<td style="text-align: right;">0.3263</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">s[-1]</td>
+<td style="text-align: right;">0.0315</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">s[-2]</td>
+<td style="text-align: right;">-0.0048</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">s[-3]</td>
+<td style="text-align: right;">-0.0353</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">s[-4]</td>
+<td style="text-align: right;">0.0251</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">s[-5]</td>
+<td style="text-align: right;">0.0556</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">s[-6]</td>
+<td style="text-align: right;">0.0122</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">s[-7]</td>
+<td style="text-align: right;">0.0250</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">s[-8]</td>
+<td style="text-align: right;">-0.0609</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">s[-9]</td>
+<td style="text-align: right;">-0.0608</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">s[-10]</td>
+<td style="text-align: right;">-0.1578</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">s[-11]</td>
+<td style="text-align: right;">-0.1562</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>For the specifications for the ARIMA model were ARIMA(1,0,2)(2,1,1)[12] with drift. This tells us there was a seasonal difference at a lag of 12, indicating the series was differenced once against the same month from the previous year. The constant 0.0036, and total differencing d+D=1, this indicates a drift term. This indicates the year-over-year growth is trending upward over time.</p>
@@ -209,11 +321,26 @@ Transformation: log(sales)
 </figure>
 </div>
 </div>
-<div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 3
-  .model lb_stat lb_pvalue
-  &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-1 arima     120.         0</code></pre>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Ljung-Box Test for Residual Autocorrelation</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: right;">Statistic</th>
+<th style="text-align: right;">p-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">arima</td>
+<td style="text-align: right;">120.39</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 <p>The high lb_stat means the model failed to capture all the underlying patterns, therefore the residuals do not reflect white noise.</p>
@@ -224,9 +351,10 @@ Transformation: log(sales)
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
+<caption>The Horse Race</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;">.model</th>
+<th style="text-align: left;">Model</th>
 <th style="text-align: right;">RMSE</th>
 <th style="text-align: right;">MAE</th>
 </tr>
@@ -253,22 +381,31 @@ Transformation: log(sales)
 </div>
 <p>The first and last forecasts for this are January 2002 to December 2019. The model that forecasts the most accurately is the ARIMA model. The ARIMA model wins for both the RMSE and MAE.</p>
 <div class="cell">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    Diebold-Mariano Test
-
-data:  liquor_errs$arimaliquor_errs$ets
-DM = -2.9062, Forecast horizon = 1, Loss function power = 2, p-value =
-0.004042
-alternative hypothesis: two.sided</code></pre>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Diebold-Mariano Test: ARIMA vs ETS</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Statistic</th>
+<th style="text-align: right;">p-value</th>
+<th style="text-align: left;">Alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">-2.9062</td>
+<td style="text-align: right;">0.004</td>
+<td style="text-align: left;">two.sided</td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
-<p>The DM statistic is -2.9062 with a p-value of 0.004042. We can reject the null hypothesis that arima and ets have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts.</p>
+<p>The DM statistic is -2.9062 with a p-value of 0.004042 over one forecast horizon with quadratic loss. We can reject the null hypothesis that ARIMA and ETS have euqual froecast accuracy. The DM test statistic tells us that the ARIMA model produces significantly more accurate one-step ahead forecasts.</p>
 </section>
 </section>
 <section id="forecast-combination" class="level2">
 <h2 class="anchored" data-anchor-id="forecast-combination">Forecast Combination</h2>
-<p>table and written answers from part 3</p>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -310,13 +447,480 @@ alternative hypothesis: two.sided</code></pre>
 <section id="var-vs.-bvar" class="level2">
 <h2 class="anchored" data-anchor-id="var-vs.-bvar">VAR vs.&nbsp;BVAR</h2>
 <p>RMSE table, DM test results, and written responses to part 4. report the numbers from saveRDS()</p>
+<p>The date range of the first and last forecast is January 03, 1960 to January 10, 2019. The expanding window generates 120 forecasts per variable with a total of 960 forecasts.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>RMSE VAR(1)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Series</th>
+<th style="text-align: right;">Statistic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">gdp</td>
+<td style="text-align: right;">0.5130384</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cons</td>
+<td style="text-align: right;">0.4598547</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">inv</td>
+<td style="text-align: right;">2.4927057</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">emp</td>
+<td style="text-align: right;">0.1956584</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">infl</td>
+<td style="text-align: right;">0.2084055</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">unrate</td>
+<td style="text-align: right;">0.1988068</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ffr</td>
+<td style="text-align: right;">0.3902989</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">gs10</td>
+<td style="text-align: right;">0.3610310</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>RMSE VAR(4)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Series</th>
+<th style="text-align: right;">Statistic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">gdp</td>
+<td style="text-align: right;">0.5693241</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cons</td>
+<td style="text-align: right;">0.5268484</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">inv</td>
+<td style="text-align: right;">2.5212629</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">emp</td>
+<td style="text-align: right;">0.2277561</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">infl</td>
+<td style="text-align: right;">0.2069608</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">unrate</td>
+<td style="text-align: right;">0.2153966</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ffr</td>
+<td style="text-align: right;">0.4973504</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">gs10</td>
+<td style="text-align: right;">0.3789663</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>VAR(1) forecasts better for all variables except for inflation rate (infl). The smaller forecast may be better because there is less noise and avoids out of sample estimation error and overfitting.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>VAR and BVAR Estimates</caption>
+<colgroup>
+<col style="width: 13%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 32%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">VAR(1)</th>
+<th style="text-align: right;">VAR(4)</th>
+<th style="text-align: right;">BVAR(4), lambda = 0.3</th>
+<th style="text-align: right;">BVAR(4), lambda = 0.05</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">gdp</td>
+<td style="text-align: right;">0.513</td>
+<td style="text-align: right;">0.569</td>
+<td style="text-align: right;">0.539</td>
+<td style="text-align: right;">0.567</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">cons</td>
+<td style="text-align: right;">0.460</td>
+<td style="text-align: right;">0.527</td>
+<td style="text-align: right;">0.486</td>
+<td style="text-align: right;">0.495</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">inv</td>
+<td style="text-align: right;">2.493</td>
+<td style="text-align: right;">2.521</td>
+<td style="text-align: right;">2.385</td>
+<td style="text-align: right;">2.698</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">emp</td>
+<td style="text-align: right;">0.196</td>
+<td style="text-align: right;">0.228</td>
+<td style="text-align: right;">0.211</td>
+<td style="text-align: right;">0.315</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">infl</td>
+<td style="text-align: right;">0.208</td>
+<td style="text-align: right;">0.207</td>
+<td style="text-align: right;">0.197</td>
+<td style="text-align: right;">0.330</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">unrate</td>
+<td style="text-align: right;">0.199</td>
+<td style="text-align: right;">0.215</td>
+<td style="text-align: right;">0.203</td>
+<td style="text-align: right;">0.216</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ffr</td>
+<td style="text-align: right;">0.390</td>
+<td style="text-align: right;">0.497</td>
+<td style="text-align: right;">0.414</td>
+<td style="text-align: right;">0.358</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">gs10</td>
+<td style="text-align: right;">0.361</td>
+<td style="text-align: right;">0.379</td>
+<td style="text-align: right;">0.359</td>
+<td style="text-align: right;">0.362</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The BVAR(4) with <span class="math inline">\(\lambda\)</span> = 0.3 has lower values compared to OLS VAR(4). The BVAR(4) adds a prior distribution which shrinks estimated parameters towards simpler baselines which reduces overfitting. Compared to VAR(1), the BVAR(4) with <span class="math inline">\(\lambda\)</span> = 0.3 estimates are much higher. This is most lively due to more noise from BVAR(4) since there are more time lags. VAR(1) has fewer degrees of freedom to estimate which keeps the forecast variance low. With BVAR(4) and <span class="math inline">\(\lambda\)</span> = 0.05, this tells the model could be suffering from over shrinkage causing the model to ignore real dynamic patterns.</p>
+<p>The RMSE for VAR(1) may not be a fair estimate of how accurately it will forecast in the future because the RMSE is still relatively large.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Diebold-Mariano Test: GDP Rate VAR vs BVAR</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Statistic</th>
+<th style="text-align: right;">p-value</th>
+<th style="text-align: left;">Alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">2.1366</td>
+<td style="text-align: right;">0.0347</td>
+<td style="text-align: left;">two.sided</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Diebold-Mariano Test: Unemployment Rate VAR vs BVAR</caption>
+<thead>
+<tr class="header">
+<th style="text-align: right;">Statistic</th>
+<th style="text-align: right;">p-value</th>
+<th style="text-align: left;">Alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">0.9151</td>
+<td style="text-align: right;">0.362</td>
+<td style="text-align: left;">two.sided</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The DM test statistic for GDP is statistically significant and tells us that the BVAR(4) outperforms and is more statistically accurate to the VAR(4) model. The DM test statistic for unemployment rate was not statistically significant between the two models which signals that the models give roughly the same forecast performance.</p>
+<p>The DM test statistics for GDP and Unemployment rate tell us that VAR(1) could still be the best option. More comparisons would need to be run to confidently conclude this.</p>
 </section>
 <section id="factor-model" class="level2">
 <h2 class="anchored" data-anchor-id="factor-model">Factor Model</h2>
 <p>include plot, results, and written answers to part 5</p>
+<p>The transformation differences depends on what we are interested in observing. The first difference of FEDFUNDS removes randomness and give us the a stationary rates of change. The growth rate for INDPRO was taken because the variable could have exhibited seasonality and therefore to understand the true underlying growth of this variable, we would find the log of the variable * 100. The first difference measures absolute change, the growth rate measures the percentage change over time.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>FRED-MD Transformation Codes</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">Transformation Code</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">INDPRO</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">PAYEMS</td>
+<td style="text-align: right;">5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CPIAUCSL</td>
+<td style="text-align: right;">6</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">FEDFUNDS</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>INDPRO: code 5, growth rate. PAYEMS: code 5, growth rate. CPIAUCSL: code 6, change in growth rate. FEDFUNDS: code 2, first difference</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Principal Component Importance (PC1–PC5)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Metric</th>
+<th style="text-align: right;">PC1</th>
+<th style="text-align: right;">PC2</th>
+<th style="text-align: right;">PC3</th>
+<th style="text-align: right;">PC4</th>
+<th style="text-align: right;">PC5</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Standard deviation</td>
+<td style="text-align: right;">4.2580</td>
+<td style="text-align: right;">2.9938</td>
+<td style="text-align: right;">2.9231</td>
+<td style="text-align: right;">2.5972</td>
+<td style="text-align: right;">2.2953</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Proportion of Variance</td>
+<td style="text-align: right;">0.1498</td>
+<td style="text-align: right;">0.0741</td>
+<td style="text-align: right;">0.0706</td>
+<td style="text-align: right;">0.0558</td>
+<td style="text-align: right;">0.0435</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Cumulative Proportion</td>
+<td style="text-align: right;">0.1498</td>
+<td style="text-align: right;">0.2239</td>
+<td style="text-align: right;">0.2945</td>
+<td style="text-align: right;">0.3503</td>
+<td style="text-align: right;">0.3938</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The principal components are estimates of the dynamic factors. These are linear combinations, weighted averages, of all the data. The share of the variation in all 121 series of the first three factors explain how much these dynamic factors move together. The first three factors explain 29% of the variation in all of the series. The first factor, PC1 = 0.149840, explains the real activity factor. The second, PC2 = 0.223910, explains the inflation factor. The third, PC3 = 0.294530, explains price variables.</p>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="ec522_ps4_writeup_baros_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Top 8 Variable Correlations with PC1 (Absolute Value)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">Abs. Correlation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">PAYEMS</td>
+<td style="text-align: right;">0.8416</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IPMANSICS</td>
+<td style="text-align: right;">0.8404</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">USGOOD</td>
+<td style="text-align: right;">0.8390</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">INDPRO</td>
+<td style="text-align: right;">0.8220</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">MANEMP</td>
+<td style="text-align: right;">0.8028</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">IPFPNSS</td>
+<td style="text-align: right;">0.7903</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CUMFNS</td>
+<td style="text-align: right;">0.7779</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">DMANEMP</td>
+<td style="text-align: right;">0.7769</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Top 8 Variable Correlations with PC2 (Absolute Value)</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable</th>
+<th style="text-align: right;">Abs. Correlation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">CUSR0000SAC</td>
+<td style="text-align: right;">0.7469</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">DNDGRG3M086SBEA</td>
+<td style="text-align: right;">0.7391</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CUSR0000SA0L2</td>
+<td style="text-align: right;">0.7279</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CPIAUCSL</td>
+<td style="text-align: right;">0.7198</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">CUSR0000SA0L5</td>
+<td style="text-align: right;">0.7020</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CPITRNSL</td>
+<td style="text-align: right;">0.6807</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">PCEPI</td>
+<td style="text-align: right;">0.6796</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">CPIULFSL</td>
+<td style="text-align: right;">0.6570</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Factor 1: The 8 most correlated: Based on thee series and the plot, it sees as though the factors capture economic production and activity.</p>
+<p>Factor 2: The 8 most correlated: Based on these series and the plot, it seems as though the factors capture consumption variables, or the Consumer Price Index (CPI). We can see this with the various dips due to recessions.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Horse Race RMSE AR(1) and RMSE with Factors</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">RMSE</th>
+<th style="text-align: right;">Statistic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">RMSE_AR</td>
+<td style="text-align: right;">0.6168431</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">RMSE_FA</td>
+<td style="text-align: right;">0.5887272</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The RMSE_AR = 0.617 and RMSE_FA = 0.589, which matches the numbers found in class. We couldn’t estimate the factors once using the full sample for the horse race because this introduces information leakage which invalidates out of sample forecasts.</p>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>Direct Forecast Race: CPIAUCSL</caption>
+<colgroup>
+<col style="width: 9%">
+<col style="width: 13%">
+<col style="width: 15%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 10%">
+<col style="width: 10%">
+<col style="width: 15%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Model</th>
+<th style="text-align: left;">series</th>
+<th style="text-align: right;">forecasts</th>
+<th style="text-align: right;">RMSE_AR</th>
+<th style="text-align: right;">RMSE_FA</th>
+<th style="text-align: right;">MAE_AR</th>
+<th style="text-align: right;">MAE_FA</th>
+<th style="text-align: right;">DM_pvalue</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">1</td>
+<td style="text-align: left;">CPIAUCSL</td>
+<td style="text-align: right;">349</td>
+<td style="text-align: right;">2.1079</td>
+<td style="text-align: right;">1.8937</td>
+<td style="text-align: right;">1.5777</td>
+<td style="text-align: right;">1.3494</td>
+<td style="text-align: right;">4e-04</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>The factors improve the forecast of 12-month CPI inflation. The RMSE drops by about 10.43% and the MAE drops by about 14.56% and the difference is statistically significant.</p>
 </section>
 <section id="reflection" class="level2">
 <h2 class="anchored" data-anchor-id="reflection">Reflection</h2>
+<p>It was very interesting to see how the different forecast models opperrate and how they compare to each other.</p>
+<p>When simple models are hard to beat, this indicated that adding extra layers of complexity introduces more noise into the estimation. With less variables, there is lower estimation error and better out-of-sample generalization. Shrinkage, equal weights, and factors all try to add structure to the data to try to get more accurate results but this also introduces bias. There was a pattern of when the models increased complexity, there were larger errors, which makes sense because bias is being introduced to the model.</p>
 </section>
 </section>
 
